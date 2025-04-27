@@ -1,56 +1,73 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
 import joblib
 
-# Load trained Random Forest model
-model = joblib.load('random_forest_model.pkl')
+# Load the trained model
+model = joblib.load('model.joblib')
 
 # Title
-st.title('Hotel Booking Cancellation Prediction')
-st.write('Predict whether a hotel booking will be canceled or not.')
+st.title('🏨 Hotel Booking Cancellation Prediction')
+st.write('Upload a CSV with 28 features to predict booking cancellation.')
 
-# Sidebar Inputs
-st.sidebar.header('Input Features')
+# File uploader
+uploaded_file = st.file_uploader("📤 Upload your CSV file here", type=['csv'])
 
-def user_input_features():
-    hotel = st.sidebar.selectbox('Hotel Type', ['Resort Hotel', 'City Hotel'])
-    lead_time = st.sidebar.slider('Lead Time (days)', 0, 500, 100)
-    adults = st.sidebar.number_input('Number of Adults', min_value=1, max_value=5, value=2)
-    children = st.sidebar.number_input('Number of Children', min_value=0, max_value=5, value=0)
-    weekend_nights = st.sidebar.number_input('Weekend Nights Stay', 0, 10, 1)
-    weekday_nights = st.sidebar.number_input('Weekday Nights Stay', 0, 20, 1)
-    previous_cancellations = st.sidebar.selectbox('Previous Cancellations', [0,1])
-    is_repeated_guest = st.sidebar.selectbox('Is Repeated Guest', [0,1])
-    deposit_type = st.sidebar.selectbox('Deposit Type', ['No Deposit', 'Refundable', 'Non Refund'])
-    required_car_parking_spaces = st.sidebar.selectbox('Required Car Parking Spaces', [0,1,2])
-    total_of_special_requests = st.sidebar.slider('Total Special Requests', 0, 5, 0)
+if uploaded_file is not None:
+    # Read the uploaded CSV
+    input_df = pd.read_csv(uploaded_file)
 
-    # Encoding deposit_type
-    deposit_type_encoded = {'No Deposit': 0, 'Refundable': 1, 'Non Refund': 2}[deposit_type]
+    # Preprocessing - Encode categorical variables if necessary
+    if 'hotel' in input_df.columns:
+        input_df['hotel'] = input_df['hotel'].map({'Resort Hotel': 0, 'City Hotel': 1})
 
-    data = {
-        'hotel': 0 if hotel == 'Resort Hotel' else 1,
-        'lead_time': lead_time,
-        'adults': adults,
-        'children': children,
-        'stays_in_weekend_nights': weekend_nights,
-        'stays_in_week_nights': weekday_nights,
-        'previous_cancellations': previous_cancellations,
-        'is_repeated_guest': is_repeated_guest,
-        'deposit_type': deposit_type_encoded,
-        'required_car_parking_spaces': required_car_parking_spaces,
-        'total_of_special_requests': total_of_special_requests
-    }
-    return pd.DataFrame([data])
+    if 'deposit_type' in input_df.columns:
+        input_df['deposit_type'] = input_df['deposit_type'].map({
+            'No Deposit': 0,
+            'Refundable': 1,
+            'Non Refund': 2
+        })
 
-input_df = user_input_features()
+    if 'customer_type' in input_df.columns:
+        input_df['customer_type'] = input_df['customer_type'].map({
+            'Transient': 0,
+            'Contract': 1,
+            'Transient-Party': 2,
+            'Group': 3
+        })
 
-# Prediction
-if st.button('Predict'):
-    prediction = model.predict(input_df)[0]
-    if prediction == 1:
-        st.error('Booking is likely to be **Canceled** ❌')
-    else:
-        st.success('Booking is likely to be **Successful** ✅')
+    # (Add similar encoding if there are more categorical columns)
+
+    # Show the uploaded data
+    st.subheader('📄 Uploaded Data Preview')
+    st.write(input_df)
+
+    # Prediction
+    try:
+        predictions = model.predict(input_df)
+
+        # Add predictions to dataframe
+        input_df['Cancellation Prediction'] = ['Canceled ❌' if pred == 1 else 'Successful ✅' for pred in predictions]
+
+        # Show predictions
+        st.subheader('📈 Prediction Results')
+        st.write(input_df)
+
+        # Downloadable CSV
+        @st.cache_data
+        def convert_df(df):
+            return df.to_csv(index=False).encode('utf-8')
+
+        csv = convert_df(input_df)
+
+        st.download_button(
+            label="⬇️ Download Predictions as CSV",
+            data=csv,
+            file_name='hotel_booking_predictions.csv',
+            mime='text/csv'
+        )
+
+    except Exception as e:
+        st.error(f"⚠️ Error during prediction: {e}")
+
+else:
+    st.info('👈 Please upload a CSV file to continue.')
