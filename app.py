@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 # Load the trained model
-model = joblib.load('model.joblib')
+model = joblib.load('rf_model.pkl')
 
 # Title
 st.title('🏨 Hotel Booking Cancellation Prediction')
