@@ -4,8 +4,8 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load trained model
-model = joblib.load('rf_model.pkl')
+# Load trained Random Forest model
+model = joblib.load('random_forest_model.pkl')
 
 # Title
 st.title('Hotel Booking Cancellation Prediction')
@@ -22,15 +22,26 @@ def user_input_features():
     weekend_nights = st.sidebar.number_input('Weekend Nights Stay', 0, 10, 1)
     weekday_nights = st.sidebar.number_input('Weekday Nights Stay', 0, 20, 1)
     previous_cancellations = st.sidebar.selectbox('Previous Cancellations', [0,1])
+    is_repeated_guest = st.sidebar.selectbox('Is Repeated Guest', [0,1])
+    deposit_type = st.sidebar.selectbox('Deposit Type', ['No Deposit', 'Refundable', 'Non Refund'])
+    required_car_parking_spaces = st.sidebar.selectbox('Required Car Parking Spaces', [0,1,2])
+    total_of_special_requests = st.sidebar.slider('Total Special Requests', 0, 5, 0)
+
+    # Encoding deposit_type
+    deposit_type_encoded = {'No Deposit': 0, 'Refundable': 1, 'Non Refund': 2}[deposit_type]
 
     data = {
-        'hotel': 0 if hotel == 'Resort Hotel' else 1,  # Encoding: Resort Hotel -> 0, City Hotel -> 1
+        'hotel': 0 if hotel == 'Resort Hotel' else 1,
         'lead_time': lead_time,
         'adults': adults,
         'children': children,
         'stays_in_weekend_nights': weekend_nights,
         'stays_in_week_nights': weekday_nights,
-        'previous_cancellations': previous_cancellations
+        'previous_cancellations': previous_cancellations,
+        'is_repeated_guest': is_repeated_guest,
+        'deposit_type': deposit_type_encoded,
+        'required_car_parking_spaces': required_car_parking_spaces,
+        'total_of_special_requests': total_of_special_requests
     }
     return pd.DataFrame([data])
 
