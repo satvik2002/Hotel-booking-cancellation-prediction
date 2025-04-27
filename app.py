@@ -1,11 +1,9 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load('rf_model.pkl')  # Ensure the filename is correct
+model = joblib.load('rf_model.pkl')
 
 st.title('🏨 Hotel Booking Cancellation Prediction')
 st.write('Upload your CSV file to predict if bookings are canceled!')
@@ -27,21 +25,18 @@ month_map = {
 # Encode function
 def encode_features(df):
     df['hotel'] = df['hotel'].map(hotel_map)
-    df['deposit_type'] = df['deposit_type'].map(deposit_type_map)
-    df['customer_type'] = df['customer_type'].map(customer_type_map)
+    df['meal'] = df['meal'].map(meal_map)
     df['market_segment'] = df['market_segment'].map(market_segment_map)
     df['distribution_channel'] = df['distribution_channel'].map(distribution_channel_map)
-    df['meal'] = df['meal'].map(meal_map)
     df['reserved_room_type'] = df['reserved_room_type'].map(room_type_map)
-    df['arrival_date_month'] = df['arrival_date_month'].map(month_map)
+    df['deposit_type'] = df['deposit_type'].map(deposit_type_map)
+    df['customer_type'] = df['customer_type'].map(customer_type_map)
     
-    # Convert reservation_status_date from string to numeric
-    df['reservation_status_date'] = pd.to_datetime(df['reservation_status_date'], format='%d-%m-%Y', errors='coerce')
-    df['reservation_status_date'] = (df['reservation_status_date'] - pd.Timestamp("2000-01-01")) // pd.Timedelta('1D')
-    
-    # Fill missing values after mapping/conversion
-    df = df.fillna(-1)
+    # If you have arrival_date info in the CSV, you might need to split year/month/day separately
+    # Assuming you already have 'year', 'month', 'day' columns
 
+    # Fill missing values after mapping
+    df = df.fillna(-1)
     return df
 
 # File uploader
@@ -50,15 +45,17 @@ uploaded_file = st.file_uploader("📂 Upload your input CSV file", type=["csv"]
 if uploaded_file is not None:
     try:
         input_df = pd.read_csv(uploaded_file)
-        
+
         expected_columns = [
-            'hotel', 'is_canceled', 'lead_time', 'arrival_date_month', 'arrival_date_week_number',
-            'arrival_date_day_of_month', 'stays_in_weekend_nights', 'stays_in_week_nights',
-            'adults', 'children', 'babies', 'meal', 'market_segment', 'distribution_channel',
-            'is_repeated_guest', 'previous_cancellations', 'previous_bookings_not_canceled',
-            'reserved_room_type', 'deposit_type', 'agent', 'company',
-            'customer_type', 'adr', 'required_car_parking_spaces', 'total_of_special_requests',
-            'reservation_status_date'
+            'hotel', 'meal', 'market_segment', 'distribution_channel',
+            'reserved_room_type', 'deposit_type', 'customer_type',
+            'year', 'month', 'day', 'lead_time',
+            'arrival_date_week_number', 'arrival_date_day_of_month',
+            'stays_in_weekend_nights', 'stays_in_week_nights',
+            'adults', 'children', 'babies', 'is_repeated_guest',
+            'previous_cancellations', 'previous_bookings_not_canceled',
+            'agent', 'company', 'adr', 'required_car_parking_spaces',
+            'total_of_special_requests'
         ]
 
         missing_cols = set(expected_columns) - set(input_df.columns)
@@ -67,15 +64,15 @@ if uploaded_file is not None:
         else:
             input_df = encode_features(input_df)
 
-            # Drop 'is_canceled' column for prediction
-            X = input_df.drop('is_canceled', axis=1)
+            # Select only model features
+            X = input_df[expected_columns]
 
             # Prediction
             predictions = model.predict(X)
             input_df['prediction'] = predictions
 
             st.success('✅ Prediction Complete!')
-            st.write(input_df[['hotel', 'lead_time', 'adults', 'children', 'prediction']])
+            st.write(input_df[['hotel', 'meal', 'lead_time', 'adults', 'children', 'prediction']])
 
             # Download predictions
             csv = input_df.to_csv(index=False).encode('utf-8')
