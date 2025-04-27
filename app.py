@@ -5,7 +5,7 @@ import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load('rf_model.pkl')  # Make sure your model filename is correct
+model = joblib.load('rf_model.pkl')  # Ensure the filename is correct
 
 st.title('🏨 Hotel Booking Cancellation Prediction')
 st.write('Upload your CSV file to predict if bookings are canceled!')
@@ -34,6 +34,11 @@ def encode_features(df):
     df['meal'] = df['meal'].map(meal_map)
     df['reserved_room_type'] = df['reserved_room_type'].map(room_type_map)
     df['arrival_date_month'] = df['arrival_date_month'].map(month_map)
+    
+    # Convert reservation_status_date from string to datetime to numeric
+    df['reservation_status_date'] = pd.to_datetime(df['reservation_status_date'], format='%d-%m-%Y', errors='coerce')
+    df['reservation_status_date'] = (df['reservation_status_date'] - pd.Timestamp("2000-01-01")) // pd.Timedelta('1D')
+    
     return df
 
 # File uploader
