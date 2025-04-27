@@ -50,7 +50,7 @@ if uploaded_file is not None:
             'is_repeated_guest', 'previous_cancellations', 'previous_bookings_not_canceled',
             'reserved_room_type', 'deposit_type', 'agent', 'company',
             'customer_type', 'adr', 'required_car_parking_spaces', 'total_of_special_requests',
-            'reservation_status_date', 'HotelBookingID', 'arrival_date'
+            'reservation_status_date'
         ]
 
         missing_cols = set(expected_columns) - set(input_df.columns)
