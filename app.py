@@ -1,9 +1,11 @@
+# app.py
+
 import streamlit as st
 import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load('rf_model.pkl')
+model = joblib.load('rf_model.pkl')  # Make sure your model filename is correct
 
 st.title('🏨 Hotel Booking Cancellation Prediction')
 st.write('Upload your CSV file to predict if bookings are canceled!')
@@ -25,18 +27,16 @@ month_map = {
 # Encode function
 def encode_features(df):
     df['hotel'] = df['hotel'].map(hotel_map)
-    df['meal'] = df['meal'].map(meal_map)
-    df['market_segment'] = df['market_segment'].map(market_segment_map)
-    df['distribution_channel'] = df['distribution_channel'].map(distribution_channel_map)
-    df['reserved_room_type'] = df['reserved_room_type'].map(room_type_map)
     df['deposit_type'] = df['deposit_type'].map(deposit_type_map)
     df['customer_type'] = df['customer_type'].map(customer_type_map)
+    df['market_segment'] = df['market_segment'].map(market_segment_map)
+    df['distribution_channel'] = df['distribution_channel'].map(distribution_channel_map)
+    df['meal'] = df['meal'].map(meal_map)
+    df['reserved_room_type'] = df['reserved_room_type'].map(room_type_map)
     
-    # If you have arrival_date info in the CSV, you might need to split year/month/day separately
-    # Assuming you already have 'year', 'month', 'day' columns
-
-    # Fill missing values after mapping
+    # Fill missing values after mapping/conversion
     df = df.fillna(-1)
+    
     return df
 
 # File uploader
@@ -45,7 +45,7 @@ uploaded_file = st.file_uploader("📂 Upload your input CSV file", type=["csv"]
 if uploaded_file is not None:
     try:
         input_df = pd.read_csv(uploaded_file)
-
+        
         expected_columns = [
             'hotel', 'meal', 'market_segment', 'distribution_channel',
             'reserved_room_type', 'deposit_type', 'customer_type',
@@ -64,15 +64,15 @@ if uploaded_file is not None:
         else:
             input_df = encode_features(input_df)
 
-            # Select only model features
-            X = input_df[expected_columns]
-
             # Prediction
-            predictions = model.predict(X)
-            input_df['prediction'] = predictions
+            predictions = model.predict(input_df)
+            
+            # Map predictions to readable text
+            prediction_labels = ['No Cancellation' if pred == 0 else 'Cancellation' for pred in predictions]
+            input_df['prediction'] = prediction_labels
 
             st.success('✅ Prediction Complete!')
-            st.write(input_df[['hotel', 'meal', 'lead_time', 'adults', 'children', 'prediction']])
+            st.write(input_df[['hotel', 'lead_time', 'adults', 'children', 'prediction']])
 
             # Download predictions
             csv = input_df.to_csv(index=False).encode('utf-8')
