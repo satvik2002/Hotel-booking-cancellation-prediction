@@ -35,10 +35,13 @@ def encode_features(df):
     df['reserved_room_type'] = df['reserved_room_type'].map(room_type_map)
     df['arrival_date_month'] = df['arrival_date_month'].map(month_map)
     
-    # Convert reservation_status_date from string to datetime to numeric
+    # Convert reservation_status_date from string to numeric
     df['reservation_status_date'] = pd.to_datetime(df['reservation_status_date'], format='%d-%m-%Y', errors='coerce')
     df['reservation_status_date'] = (df['reservation_status_date'] - pd.Timestamp("2000-01-01")) // pd.Timedelta('1D')
     
+    # Fill missing values after mapping/conversion
+    df = df.fillna(-1)
+
     return df
 
 # File uploader
@@ -74,7 +77,7 @@ if uploaded_file is not None:
             st.success('✅ Prediction Complete!')
             st.write(input_df[['hotel', 'lead_time', 'adults', 'children', 'prediction']])
 
-            # Download
+            # Download predictions
             csv = input_df.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📥 Download Predictions as CSV",
