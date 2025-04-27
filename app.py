@@ -58,8 +58,8 @@ if uploaded_file is not None:
             # Encode categorical columns
             input_encoded = encode_features(input_df.copy())
 
-            # Drop non-numeric or irrelevant columns if needed
-            input_encoded = input_encoded.drop(['arrival_date_month', 'country', 'reservation_status'], axis=1)
+            # 🔥 Drop only 'reservation_status' (the label)
+            input_encoded = input_encoded.drop(['reservation_status'], axis=1)
 
             # Predict
             prediction = model.predict(input_encoded)
