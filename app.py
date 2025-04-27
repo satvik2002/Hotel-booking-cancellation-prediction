@@ -45,14 +45,13 @@ if uploaded_file is not None:
         input_df = pd.read_csv(uploaded_file)
         
         expected_columns = [
-            'hotel', 'lead_time', 'arrival_date_month', 'adults', 'children', 
-            'stays_in_weekend_nights', 'stays_in_week_nights', 'previous_cancellations',
-            'booking_changes', 'deposit_type', 'days_in_waiting_list',
-            'customer_type', 'required_car_parking_spaces', 'total_of_special_requests',
-            'is_repeated_guest', 'market_segment', 'distribution_channel',
-            'reserved_room_type', 'assigned_room_type', 'meal',
-            'arrival_date_week_number', 'arrival_date_day_of_month',
-            'agent', 'company', 'babies', 'adr', 'country', 'reservation_status'
+            'hotel', 'is_canceled', 'lead_time', 'arrival_date_month', 'arrival_date_week_number',
+            'arrival_date_day_of_month', 'stays_in_weekend_nights', 'stays_in_week_nights',
+            'adults', 'children', 'babies', 'meal', 'market_segment', 'distribution_channel',
+            'is_repeated_guest', 'previous_cancellations', 'previous_bookings_not_canceled',
+            'reserved_room_type', 'deposit_type', 'agent', 'company',
+            'customer_type', 'adr', 'required_car_parking_spaces', 'total_of_special_requests',
+            'reservation_status_date', 'HotelBookingID', 'arrival_date'
         ]
 
         missing_cols = set(expected_columns) - set(input_df.columns)
