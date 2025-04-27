@@ -1,73 +1,84 @@
+# app.py
+
 import streamlit as st
 import pandas as pd
 import joblib
 
-# Load the trained model
+# Load trained Random Forest model
 model = joblib.load('rf_model.pkl')
 
 # Title
 st.title('🏨 Hotel Booking Cancellation Prediction')
-st.write('Upload a CSV with 28 features to predict booking cancellation.')
+st.write('Upload your hotel booking CSV file to predict cancellations!')
 
 # File uploader
-uploaded_file = st.file_uploader("📤 Upload your CSV file here", type=['csv'])
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
 if uploaded_file is not None:
     # Read the uploaded CSV
-    input_df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file)
 
-    # Preprocessing - Encode categorical variables if necessary
-    if 'hotel' in input_df.columns:
-        input_df['hotel'] = input_df['hotel'].map({'Resort Hotel': 0, 'City Hotel': 1})
+    st.subheader('📋 Raw Uploaded Data')
+    st.write(df)
 
-    if 'deposit_type' in input_df.columns:
-        input_df['deposit_type'] = input_df['deposit_type'].map({
-            'No Deposit': 0,
-            'Refundable': 1,
-            'Non Refund': 2
-        })
+    # Encoding categorical columns (same as during training)
+    mapping_month = {
+        'January': 1, 'February': 2, 'March': 3, 'April': 4,
+        'May': 5, 'June': 6, 'July': 7, 'August': 8,
+        'September': 9, 'October': 10, 'November': 11, 'December': 12
+    }
+    mapping_hotel = {'Resort Hotel': 0, 'City Hotel': 1}
+    mapping_deposit = {'No Deposit': 0, 'Refundable': 1, 'Non Refund': 2}
 
-    if 'customer_type' in input_df.columns:
-        input_df['customer_type'] = input_df['customer_type'].map({
-            'Transient': 0,
-            'Contract': 1,
-            'Transient-Party': 2,
-            'Group': 3
-        })
+    # Apply mapping safely
+    if 'hotel' in df.columns:
+        df['hotel'] = df['hotel'].map(mapping_hotel)
+    if 'arrival_date_month' in df.columns:
+        df['arrival_date_month'] = df['arrival_date_month'].map(mapping_month)
+    if 'deposit_type' in df.columns:
+        df['deposit_type'] = df['deposit_type'].map(mapping_deposit)
 
-    # (Add similar encoding if there are more categorical columns)
+    # Features to predict (must match training)
+    features = [
+        'hotel', 'lead_time', 'arrival_date_month', 'adults', 'children', 
+        'stays_in_weekend_nights', 'stays_in_week_nights', 'previous_cancellations',
+        'booking_changes', 'deposit_type', 'days_in_waiting_list',
+        'customer_type', 'required_car_parking_spaces', 'total_of_special_requests',
+        'is_repeated_guest', 'market_segment', 'distribution_channel',
+        'reserved_room_type', 'assigned_room_type', 'meal',
+        'arrival_date_week_number', 'arrival_date_day_of_month',
+        'agent', 'company', 'babies', 'adr', 'country', 'reservation_status'
+    ]
 
-    # Show the uploaded data
-    st.subheader('📄 Uploaded Data Preview')
-    st.write(input_df)
+    missing_cols = [col for col in features if col not in df.columns]
 
-    # Prediction
-    try:
-        predictions = model.predict(input_df)
+    if missing_cols:
+        st.error(f"⚠️ The uploaded CSV is missing required columns: {missing_cols}")
+    else:
+        X = df[features]
 
-        # Add predictions to dataframe
-        input_df['Cancellation Prediction'] = ['Canceled ❌' if pred == 1 else 'Successful ✅' for pred in predictions]
+        # Prediction
+        try:
+            prediction = model.predict(X)
 
-        # Show predictions
-        st.subheader('📈 Prediction Results')
-        st.write(input_df)
+            # Add prediction to the dataframe
+            df['Cancellation Prediction'] = prediction
+            df['Cancellation Prediction'] = df['Cancellation Prediction'].map({1: 'Canceled ❌', 0: 'Not Canceled ✅'})
 
-        # Downloadable CSV
-        @st.cache_data
-        def convert_df(df):
-            return df.to_csv(index=False).encode('utf-8')
+            st.subheader('🎯 Prediction Results')
+            st.write(df[['Cancellation Prediction']])
 
-        csv = convert_df(input_df)
+            # Download option
+            csv_download = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Predictions as CSV",
+                data=csv_download,
+                file_name='hotel_booking_predictions.csv',
+                mime='text/csv'
+            )
 
-        st.download_button(
-            label="⬇️ Download Predictions as CSV",
-            data=csv,
-            file_name='hotel_booking_predictions.csv',
-            mime='text/csv'
-        )
-
-    except Exception as e:
-        st.error(f"⚠️ Error during prediction: {e}")
+        except Exception as e:
+            st.error(f"⚠️ Error during prediction: {e}")
 
 else:
-    st.info('👈 Please upload a CSV file to continue.')
+    st.info('👆 Upload a CSV file to get started!')
