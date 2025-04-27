@@ -5,9 +5,9 @@ import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load('rf_model.pkl')  # or whatever your model filename is
+model = joblib.load('rf_model.pkl')  # Make sure your model filename is correct
 
-st.title('Hotel Booking Cancellation Prediction')
+st.title('🏨 Hotel Booking Cancellation Prediction')
 st.write('Upload your CSV file to predict if bookings are canceled!')
 
 # Mappings for encoding
@@ -33,12 +33,11 @@ def encode_features(df):
     df['distribution_channel'] = df['distribution_channel'].map(distribution_channel_map)
     df['meal'] = df['meal'].map(meal_map)
     df['reserved_room_type'] = df['reserved_room_type'].map(room_type_map)
-    df['assigned_room_type'] = df['assigned_room_type'].map(room_type_map)
     df['arrival_date_month'] = df['arrival_date_month'].map(month_map)
     return df
 
 # File uploader
-uploaded_file = st.file_uploader("Upload your input CSV file", type=["csv"])
+uploaded_file = st.file_uploader("📂 Upload your input CSV file", type=["csv"])
 
 if uploaded_file is not None:
     try:
@@ -56,11 +55,14 @@ if uploaded_file is not None:
 
         missing_cols = set(expected_columns) - set(input_df.columns)
         if missing_cols:
-            st.error(f"Uploaded CSV is missing required columns: {missing_cols}")
+            st.error(f"🚫 Uploaded CSV is missing required columns: {missing_cols}")
         else:
             input_df = encode_features(input_df)
-            X = input_df.drop('reservation_status', axis=1)
 
+            # Drop 'is_canceled' column for prediction
+            X = input_df.drop('is_canceled', axis=1)
+
+            # Prediction
             predictions = model.predict(X)
             input_df['prediction'] = predictions
 
