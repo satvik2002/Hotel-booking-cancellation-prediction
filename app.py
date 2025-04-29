@@ -5,7 +5,7 @@ import pandas as pd
 import joblib
 
 # Load trained model
-model = joblib.load('rf_model.pkl')  # Make sure your model filename is correct
+model = joblib.load('rf_model_final.pkl')  # Make sure your model filename is correct
 
 st.title('🏨 Hotel Booking Cancellation Prediction')
 st.write('Upload your CSV file to predict if bookings are canceled!')
