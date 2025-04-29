@@ -16,7 +16,6 @@ deposit_type_map = {'No Deposit': 0, 'Refundable': 1, 'Non Refund': 2}
 customer_type_map = {'Transient': 0, 'Contract': 1, 'Transient-Party': 2, 'Group': 3}
 market_segment_map = {'Online TA': 0, 'Offline TA/TO': 1, 'Direct': 2, 'Corporate': 3, 'Complementary': 4, 'Groups': 5, 'Aviation': 6, 'Undefined': 7}
 distribution_channel_map = {'TA/TO': 0, 'Direct': 1, 'Corporate': 2, 'GDS': 3, 'Undefined': 4}
-meal_map = {'BB': 0, 'HB': 1, 'FB': 2, 'SC': 3, 'Undefined': 4}
 room_type_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'L': 9, 'P': 10}
 month_map = {
     'January': 1, 'February': 2, 'March': 3, 'April': 4,
@@ -31,7 +30,6 @@ def encode_features(df):
     df['customer_type'] = df['customer_type'].map(customer_type_map)
     df['market_segment'] = df['market_segment'].map(market_segment_map)
     df['distribution_channel'] = df['distribution_channel'].map(distribution_channel_map)
-    df['meal'] = df['meal'].map(meal_map)
     df['reserved_room_type'] = df['reserved_room_type'].map(room_type_map)
     
     # Fill missing values after mapping/conversion
@@ -46,17 +44,10 @@ if uploaded_file is not None:
     try:
         input_df = pd.read_csv(uploaded_file)
         
-        expected_columns = [
-            'hotel', 'meal', 'market_segment', 'distribution_channel',
-            'reserved_room_type', 'deposit_type', 'customer_type',
-            'year', 'month', 'day', 'lead_time',
-            'arrival_date_week_number', 'arrival_date_day_of_month',
-            'stays_in_weekend_nights', 'stays_in_week_nights',
-            'adults', 'children', 'babies', 'is_repeated_guest',
-            'previous_cancellations', 'previous_bookings_not_canceled',
-            'agent', 'company', 'adr', 'required_car_parking_spaces',
-            'total_of_special_requests'
-        ]
+        expected_columns = ["hotel", "market_segment", "distribution_channel", "reserved_room_type",
+                            "deposit_type", "customer_type", "year", "month", "day", "lead_time",
+                            "arrival_date_week_number", "stays_in_weekend_nights", "stays_in_week_nights",
+                            "previous_cancellations", "adr", "required_car_parking_spaces"]
 
         missing_cols = set(expected_columns) - set(input_df.columns)
         if missing_cols:
