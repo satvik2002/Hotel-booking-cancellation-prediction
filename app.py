@@ -63,7 +63,7 @@ if uploaded_file is not None:
             input_df['prediction'] = prediction_labels
 
             st.success('✅ Prediction Complete!')
-            st.write(input_df[['hotel', 'lead_time', 'adults', 'children', 'prediction']])
+            st.write(input_df[['hotel', 'lead_time', 'market_segment', 'distribution_channel', 'prediction']])
 
             # Download predictions
             csv = input_df.to_csv(index=False).encode('utf-8')
