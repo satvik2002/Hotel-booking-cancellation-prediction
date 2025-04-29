@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 # Dummy user credentials (replace with secure storage or DB in production)
-USERS = {"SatvikBoyina": "HL$1dw@1"}
+USERS = {"Admin": "admin123"}
 
 # Load model
 model = joblib.load('rf_model_final.pkl')
